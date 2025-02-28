@@ -5,8 +5,14 @@ import apiClient from "../utils/axiosInterceptors";
 
 interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
+  fullName: string;
+  avatar: string;
+  coverImage: string;
+  watchHistory: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Credentials {
@@ -24,6 +30,7 @@ interface UserStore {
   fetchCurrentUser: () => Promise<void>;
   isAuthenticated: () => boolean;
 }
+
 const useUserStore = create<UserStore>()(
   persist(
     (set, get) => {
