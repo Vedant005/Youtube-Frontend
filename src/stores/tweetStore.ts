@@ -18,19 +18,37 @@ interface TweetStore {
   tweets: Tweet[];
   loading: boolean;
   error: string | null;
+  getUserTweets: () => Promise<void>;
 }
 
-// const useTweetStore= create<TweetStore>()(
-//     persist(
-//         (set)=>({
-//             tweets:[],
-//             loading:false,
-//             error:null;
+const useTweetStore = create<TweetStore>()(
+  persist(
+    (set) => ({
+      tweets: [],
+      loading: false,
+      error: null,
 
-//             getUserTweets:async(user)=>{
+      getUserTweets: async () => {
+        set({ loading: true, error: null });
 
-//             }
-//         }
-//     )
-//     )
-// )
+        try {
+          const response = await apiClient.get("/tweets/user");
+          set({ tweets: response.data.data, loading: false });
+        } catch (error: any) {
+          set({
+            loading: false,
+            error: error.message || "Failed to fetch tweets",
+          });
+        }
+      },
+    }),
+    {
+      name: "tweet-store",
+      partialize: (state) => ({
+        tweets: state.tweets,
+      }),
+    }
+  )
+);
+
+export default useTweetStore;
