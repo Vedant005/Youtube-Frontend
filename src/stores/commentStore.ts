@@ -4,20 +4,19 @@ import axios from "axios";
 interface Comment {
   _id: string;
   content: string;
-  createdAt: string;
-  likesCount: number;
-  isLiked: boolean;
   owner: {
     username: string;
     fullName: string;
-    avatar?: {
-      url: string;
-    };
+    avatar: string;
   };
+  createdAt: string;
+  likesCount: number;
+  isLiked: boolean;
 }
 
 interface CommentStore {
   comments: Comment[];
+  totalDocs: number;
   loading: boolean;
   fetchComments: (videoId: string) => Promise<void>;
   addComment: (videoId: string, content: string) => Promise<void>;
@@ -27,13 +26,18 @@ interface CommentStore {
 
 export const useCommentStore = create<CommentStore>((set) => ({
   comments: [],
+  totalDocs: 0,
   loading: false,
 
   fetchComments: async (videoId) => {
     set({ loading: true });
     try {
       const { data } = await axios.get(`/api/comments/${videoId}`);
-      set({ comments: data.data, loading: false });
+      set({
+        comments: data.data.docs,
+        totalDocs: data.data.totalDocs,
+        loading: false,
+      });
     } catch (error) {
       console.error("Error fetching comments:", error);
       set({ loading: false });
@@ -45,7 +49,7 @@ export const useCommentStore = create<CommentStore>((set) => ({
       const { data } = await axios.post(`/api/comments/${videoId}`, {
         content,
       });
-      set((state) => ({ comments: [data.data, ...state.comments] }));
+      set((state) => ({ comments: [data.data.docs, ...state.comments] }));
     } catch (error) {
       console.error("Error adding comment:", error);
     }
@@ -59,7 +63,7 @@ export const useCommentStore = create<CommentStore>((set) => ({
       set((state) => ({
         comments: state.comments.map((comment) =>
           comment._id === commentId
-            ? { ...comment, content: data.data.content }
+            ? { ...comment, content: data.data.docs.content }
             : comment
         ),
       }));
